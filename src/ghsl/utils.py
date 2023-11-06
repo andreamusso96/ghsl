@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 import pandas as pd
 import rioxarray as rxr
@@ -13,6 +14,35 @@ def open_raster_file(file_path: str) -> xr.DataArray:
     return rxr.open_rasterio(file_path)
 
 
+def transform_xarray_into_geopandas(data: xr.DataArray, column_name: str, remove_vals: List[int]) -> gpd.GeoDataFrame:
+    stacked_xr = data.stack(z=('x', 'y'))
+    pandas_df = stacked_xr.to_pandas().reset_index()
+    pandas_df.rename(columns={0: column_name}, inplace=True)
+    pandas_df = pandas_df.loc[~pandas_df[column_name].isin(set(remove_vals))]
+    geometry = gpd.points_from_xy(pandas_df['x'], pandas_df['y'])
+    geopandas_df = gpd.GeoDataFrame(pandas_df.drop(columns=['x', 'y']), geometry=geometry, crs='World_Mollweide')
+    geopandas_df.reset_index(drop=True, inplace=True)
+    return geopandas_df
+
+
+def get_tiles_intersecting_polygons(polygons: gpd.GeoDataFrame, data: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    polygons_ = polygons.to_crs(data.crs)
+    tiles_polygons_join = gpd.sjoin(data, polygons_, how='inner', predicate='intersects')
+    tiles_polygons_join.rename(columns={'index_right': 'polygon_id'}, inplace=True)
+    return tiles_polygons_join
+
+
+def get_tiles_within_bounds(data: pd.DataFrame, column: str, lower_bound: int, upper_bound: int) -> gpd.GeoDataFrame:
+    mask_ub_lb = (data[column] > lower_bound) & (data[column] <= upper_bound)
+    data = data[mask_ub_lb]
+    return data
+
+
+def transform_centroids_into_squares(data: gpd.GeoDataFrame, length_side: float) -> gpd.GeoDataFrame:
+    data['geometry'] = data['geometry'].apply(lambda centroid: create_square_from_centroid(centroid.x, centroid.y, length_side=length_side))
+    return data
+
+
 def create_square_from_centroid(x_center: float, y_center: float, length_side: float) -> Polygon:
     half_length_side = length_side / 2
     x_min = x_center - half_length_side
@@ -20,13 +50,3 @@ def create_square_from_centroid(x_center: float, y_center: float, length_side: f
     y_min = y_center - half_length_side
     y_max = y_center + half_length_side
     return Polygon([(x_min, y_min), (x_max, y_min), (x_max, y_max), (x_min, y_max)])
-
-
-def transform_xy_dataframe_into_geopandas(data: pd.DataFrame, centroid: bool) -> gpd.GeoDataFrame:
-    if centroid:
-        geometry = gpd.points_from_xy(data['x'], data['y'])
-    else:
-        geometry = data.apply(lambda row: create_square_from_centroid(row['x'], row['y'], length_side=1000), axis=1).values
-
-    data = gpd.GeoDataFrame(data.drop(columns=['x', 'y']), geometry=geometry, crs='World_Mollweide')
-    return data

@@ -25,7 +25,7 @@ class DegreeOfUrbanization(Enum):
     RURAL_CLUSTER = 13
     LOW_DENSITY_RURAL = 12
     VERY_LOW_DENSITY_RURAL = 11
-    WATER = 0
+    WATER = 10
     NO_DATA = -200
 
 

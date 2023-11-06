@@ -13,8 +13,8 @@ class Data:
 
     def data(self, year: enums.Year) -> xr.DataArray:
         if self._data is None or self._year != year:
-            self._data = utils.open_raster_file(config.get_population_raster_file_path(year=year))
-            self._data = self._data.squeeze(dim='band', drop=True)
+            raw_data = utils.open_raster_file(config.get_population_raster_file_path(year=year))
+            self._data = utils.transform_xarray_into_geopandas(data=raw_data.squeeze(dim='band', drop=True), column_name='population', remove_vals=[-200])
         return self._data
 
 
