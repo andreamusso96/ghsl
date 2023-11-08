@@ -20,6 +20,9 @@ def get_tiles(year: enums.Year, pop_lower_bound: int = 0, pop_upper_bound: int =
     if polygons is not None:
         population_and_xy_coords_tile_centroid = utils.get_tiles_intersecting_polygons(polygons=polygons, data=population_and_xy_coords_tile_centroid)
 
+    else:
+        population_and_xy_coords_tile_centroid['polygon_id'] = 0
+
     if not centroid:
         population_and_xy_coords_tile_centroid = utils.transform_centroids_into_squares(data=population_and_xy_coords_tile_centroid, length_side=1000)
 

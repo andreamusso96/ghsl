@@ -16,6 +16,8 @@ def get_tiles(year: enums.Year, lower_bound: enums.DegreeOfUrbanization = enums.
     degree_urbanization_and_xy_coords_tile_centroid = utils.get_tiles_within_bounds(data=degree_urbanization_and_xy_coords_tile_centroid, column='degree_of_urbanization', lower_bound=lower_bound.value, upper_bound=upper_bound.value)
     if polygons is not None:
         degree_urbanization_and_xy_coords_tile_centroid = utils.get_tiles_intersecting_polygons(polygons=polygons, data=degree_urbanization_and_xy_coords_tile_centroid)
+    else:
+        degree_urbanization_and_xy_coords_tile_centroid['polygon_id'] = 0
 
     if not centroid:
         degree_urbanization_and_xy_coords_tile_centroid = utils.transform_centroids_into_squares(data=degree_urbanization_and_xy_coords_tile_centroid, length_side=1000)

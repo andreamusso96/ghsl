@@ -34,7 +34,7 @@ def get_tiles_intersecting_polygons(polygons: gpd.GeoDataFrame, data: gpd.GeoDat
 
 def get_tiles_within_bounds(data: pd.DataFrame, column: str, lower_bound: int, upper_bound: int) -> gpd.GeoDataFrame:
     mask_ub_lb = (data[column] > lower_bound) & (data[column] <= upper_bound)
-    data = data[mask_ub_lb]
+    data = data[mask_ub_lb].copy()
     return data
 
 
