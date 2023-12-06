@@ -1,2 +1,2 @@
-from . import pop, smod, algorithms, countries
+from . import pop, smod, countries, continents
 from .enums import Year, DegreeOfUrbanization
